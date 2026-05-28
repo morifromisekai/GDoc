@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Publisher Dashboard - Game Design Blog</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Quill.js Editor CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet">
+    <!-- Cropper.js CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Specific adjustments for cropper and editor in dashboard */
+        .preview-box {
+            overflow: hidden;
+            width: 100%;
+            height: 300px;
+            background-color: #f7f7f7;
+            border: 1px solid var(--border-color);
+        }
+        .cropper-view-box, .cropper-face {
+            border-radius: 0px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Responsive Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-minimal">
+        <div class="container">
+            <a class="navbar-brand-minimal" href="index.html" id="nav-brand-logo">GDOC // GAME DESIGN LOG</a>
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+                <ul class="navbar-nav align-items-center gap-3 mt-3 mt-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link-minimal" href="index.html" id="nav-link-home">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link-minimal active" href="blogger.html" id="nav-link-blogger">Publish</a>
+                    </li>
+                    <li class="nav-item">
+                        <button class="btn-toggle-theme" id="theme-toggle-btn" aria-label="Toggle theme">DARK MODE</button>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <main class="container my-5" style="max-width: 960px;">
+
+        <!-- 1. CONNECTION SCREEN (AUTH) -->
+        <section id="connection-screen" class="row">
+            <div class="col-md-8 col-lg-6 mx-auto">
+                <div class="admin-card">
+                    <h2 class="h4 fw-bold mb-3">CONNECT TO GITHUB</h2>
+                    <p class="text-muted font-serif mb-4 small">
+                        Since this blog has no backend database, you will publish directly to your Git repository using the GitHub API. Your credentials are saved securely in your browser's local storage and never sent elsewhere.
+                    </p>
+                    
+                    <div id="login-error-alert" class="alert alert-danger border-0 rounded-0 bg-transparent text-danger p-0 d-none mb-4" role="alert">
+                        <!-- Login errors -->
+                    </div>
+
+                    <form id="connection-form">
+                        <div class="mb-3">
+                            <label for="github-token" class="form-label fw-bold text-uppercase fs-8">GitHub Personal Access Token (PAT)</label>
+                            <input type="password" class="form-control form-control-minimal" id="github-token" placeholder="github_pat_..." required autocomplete="current-password">
+                            <div class="form-text fs-8 text-muted mt-1">
+                                Need a token? <a href="https://github.com/settings/tokens/new?scopes=repo" target="_blank" class="text-decoration-underline text-dark">Generate classic token</a> with <strong>repo</strong> permissions.
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="github-owner" class="form-label fw-bold text-uppercase fs-8">GitHub Username / Owner</label>
+                            <input type="text" class="form-control form-control-minimal" id="github-owner" required>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-8 mb-3">
+                                <label for="github-repo" class="form-label fw-bold text-uppercase fs-8">Repository Name</label>
+                                <input type="text" class="form-control form-control-minimal" id="github-repo" required>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="github-branch" class="form-label fw-bold text-uppercase fs-8">Branch</label>
+                                <input type="text" class="form-control form-control-minimal" id="github-branch" required>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-minimal w-100 mt-2" id="login-submit-btn">
+                            <span id="login-btn-text">CONNECT TO REPOSITORY</span>
+                            <span id="login-btn-spinner" class="minimal-spinner d-none" style="width:1rem; height:1rem; border-width: 1px;"></span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. PUBLISHER DASHBOARD (MAIN) -->
+        <section id="publisher-dashboard" class="d-none">
+            <!-- Repo Info Header -->
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center border-bottom border-color pb-3 mb-4">
+                <div>
+                    <h2 class="h3 fw-bold mb-0">PUBLISHER DASHBOARD</h2>
+                    <div class="text-muted fs-8 mt-1">
+                        Connected to repository: <span class="fw-semibold text-dark" id="header-repo-name">owner/repo</span> on branch <span class="badge bg-secondary rounded-0 font-sans" id="header-branch-name">main</span>
+                    </div>
+                </div>
+                <div class="mt-3 mt-md-0">
+                    <button class="btn btn-minimal-secondary btn-sm" id="logout-btn">DISCONNECT REPO</button>
+                </div>
+            </div>
+
+            <!-- Tab Navigation -->
+            <ul class="nav nav-tabs border-bottom border-color mb-4" id="dashboardTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link font-sans text-uppercase fs-8 fw-semibold px-4 border-0 rounded-0 active text-dark" id="write-tab" data-bs-toggle="tab" data-bs-target="#write-panel" type="button" role="tab" aria-controls="write-panel" aria-selected="true" style="background: none; border-bottom: 2px solid var(--text-color) !important;">Write Post</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link font-sans text-uppercase fs-8 fw-semibold px-4 border-0 rounded-0 text-muted" id="manage-tab" data-bs-toggle="tab" data-bs-target="#manage-panel" type="button" role="tab" aria-controls="manage-panel" aria-selected="false" style="background: none;">Manage Posts</button>
+                </li>
+            </ul>
+
+            <div class="tab-content" id="dashboardTabsContent">
+                <!-- TAB 1: WRITE POST -->
+                <div class="tab-pane fade show active" id="write-panel" role="tabpanel" aria-labelledby="write-tab">
+                    
+                    <div id="publish-alert" class="alert d-none border-0 rounded-0 p-3 mb-4" role="alert">
+                        <!-- Dynamic publishing status alerts -->
+                    </div>
+
+                    <form id="post-form">
+                        <div class="row">
+                            <div class="col-md-8 mb-3">
+                                <label for="post-title-input" class="form-label fw-bold text-uppercase fs-8">Blog Title</label>
+                                <input type="text" class="form-control form-control-minimal" id="post-title-input" placeholder="e.g. Design Breakdown of Elden Ring's Boss Encounters" required>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="post-tags-input" class="form-label fw-bold text-uppercase fs-8">Tags (Comma-separated)</label>
+                                <input type="text" class="form-control form-control-minimal" id="post-tags-input" placeholder="e.g. Analysis, Boss Design, Elden Ring">
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="post-summary-input" class="form-label fw-bold text-uppercase fs-8">Summary Teaser (Short couple of sentences)</label>
+                            <textarea class="form-control form-control-minimal" id="post-summary-input" rows="2" placeholder="Write a short summary that will appear on the landing page card..." required></textarea>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold text-uppercase fs-8 d-flex justify-content-between">
+                                <span>Article Content</span>
+                                <span class="text-muted normal-case font-serif fs-8">Images will trigger the cropper automatically.</span>
+                            </label>
+                            <!-- Quill editor container -->
+                            <div id="quill-editor-container"></div>
+                        </div>
+
+                        <div class="text-end">
+                            <button type="submit" class="btn btn-minimal px-5" id="publish-submit-btn">
+                                <span id="publish-btn-text">PUBLISH BLOG POST</span>
+                                <span id="publish-btn-spinner" class="minimal-spinner d-none ms-2" style="width:1rem; height:1rem; border-width: 1px;"></span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- TAB 2: MANAGE POSTS -->
+                <div class="tab-pane fade" id="manage-panel" role="tabpanel" aria-labelledby="manage-tab">
+                    <div id="manage-alert" class="alert d-none border-0 rounded-0 p-3 mb-4" role="alert">
+                        <!-- Dynamic manage status alerts -->
+                    </div>
+
+                    <div class="table-responsive border border-color">
+                        <table class="table table-hover align-middle mb-0" style="background-color: transparent; color: inherit;">
+                            <thead class="table-light font-sans text-uppercase fs-8" style="background-color: var(--nav-bg); color: var(--text-color); border-bottom: 1px solid var(--border-color);">
+                                <tr>
+                                    <th scope="col" class="py-3 px-3">Date</th>
+                                    <th scope="col" class="py-3">Title</th>
+                                    <th scope="col" class="py-3">Tags</th>
+                                    <th scope="col" class="py-3 text-end px-3">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="posts-table-body" class="font-serif">
+                                <tr>
+                                    <td colspan="4" class="text-center py-5 text-muted">
+                                        <div class="minimal-spinner" role="status"></div>
+                                        <div class="mt-2 fs-8 font-sans">Loading index posts...</div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. IMAGE CROPPER MODAL -->
+        <div class="modal fade" id="cropperModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="cropperModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-lg">
+                <div class="modal-content rounded-0 border-0 bg-theme-container" style="background-color: var(--bg-color); color: var(--text-color); border: 1px solid var(--border-color) !important;">
+                    <div class="modal-header border-bottom border-color">
+                        <h5 class="modal-title fw-bold font-sans text-uppercase fs-7" id="cropperModalLabel">Crop Game Design Image</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="filter: var(--bs-theme-filter);"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-lg-8 mb-3 mb-lg-0">
+                                <div class="bg-light d-flex justify-content-center align-items-center" style="max-height: 400px; border: 1px solid var(--border-color);">
+                                    <img id="imageToCrop" src="" alt="Source image for cropping" style="max-width: 100%; display: block;">
+                                </div>
+                            </div>
+                            <div class="col-lg-4">
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold text-uppercase fs-8">Aspect Ratio Lock</label>
+                                    <div class="d-flex flex-column gap-2">
+                                        <button type="button" class="btn btn-minimal-secondary btn-sm rounded-0 ratio-btn active" data-ratio="1.777">16:9 Landscape (HD)</button>
+                                        <button type="button" class="btn btn-minimal-secondary btn-sm rounded-0 ratio-btn" data-ratio="1">1:1 Square (Grid)</button>
+                                        <button type="button" class="btn btn-minimal-secondary btn-sm rounded-0 ratio-btn" data-ratio="NaN">Free Aspect</button>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="form-label fw-bold text-uppercase fs-8">Compression Size Preview</label>
+                                    <p class="font-serif text-muted small">The cropped image will be optimized into a lightweight WebP format (~100KB) client-side before uploading to your Git repository.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-top border-color">
+                        <button type="button" class="btn btn-minimal-secondary rounded-0" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-minimal rounded-0" id="cropSaveBtn">Crop &amp; Upload</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. VIDEO EMBED MODAL -->
+        <div class="modal fade" id="videoModal" tabindex="-1" aria-labelledby="videoModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content rounded-0 border-0 bg-theme-container" style="background-color: var(--bg-color); color: var(--text-color); border: 1px solid var(--border-color) !important;">
+                    <div class="modal-header border-bottom border-color">
+                        <h5 class="modal-title fw-bold font-sans text-uppercase fs-7" id="videoModalLabel">Insert Video / Gameplay Clip</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="filter: var(--bs-theme-filter);"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="video-url-input" class="form-label fw-bold text-uppercase fs-8">Video Link (YouTube / Vimeo / Direct MP4 URL)</label>
+                            <input type="text" class="form-control form-control-minimal" id="video-url-input" placeholder="https://www.youtube.com/watch?v=...">
+                            <div class="form-text fs-8 text-muted mt-1">
+                                Paste a YouTube link or a direct URL to a hosted MP4 video. YouTube will be automatically converted to a responsive player embed.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-top border-color">
+                        <button type="button" class="btn btn-minimal-secondary rounded-0" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-minimal rounded-0" id="insertVideoBtn">Insert Player</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- HIDDEN INPUT FOR QUILL IMAGES -->
+        <input type="file" id="quill-image-uploader" accept="image/*" class="d-none">
+
+    </main>
+
+    <!-- Bootstrap 5 Bundle JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Quill WYSIWYG Editor JS -->
+    <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.min.js"></script>
+
+    <!-- Cropper.js Crop Library -->
+    <script src="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.js"></script>
+
+    <!-- Turndown HTML-to-Markdown Library (Clean Markdown File Conversion) -->
+    <script src="https://cdn.jsdelivr.net/npm/turndown@7.1.3/dist/turndown.min.js"></script>
+
+    <!-- Shared Configurations -->
+    <script src="config.js"></script>
+    <script>
+        // Set Theme Immediately to prevent flash
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        const toggleBtn = document.getElementById('theme-toggle-btn');
+        if (toggleBtn) {
+            toggleBtn.textContent = savedTheme === 'dark' ? 'LIGHT MODE' : 'DARK MODE';
+        }
+        if (toggleBtn) {
+            toggleBtn.addEventListener('click', () => {
+                const currentTheme = document.documentElement.getAttribute('data-theme');
+                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                document.documentElement.setAttribute('data-theme', newTheme);
+                localStorage.setItem('theme', newTheme);
+                toggleBtn.textContent = newTheme === 'dark' ? 'LIGHT MODE' : 'DARK MODE';
+            });
+        }
+    </script>
+    <script src="blogger.js"></script>
+</body>
+</html>
