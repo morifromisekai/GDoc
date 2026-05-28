@@ -1,6 +1,6 @@
 # Architectural & Design Decisions Log
 
-This log documents all major technical decisions, libraries, layout patterns, and code choices for the Game Design Blog.
+This log explains the implementation details, reasoning, and technical dependencies chosen for the Game Design Blog project.
 
 ---
 
@@ -8,27 +8,56 @@ This log documents all major technical decisions, libraries, layout patterns, an
 
 | Tool / Library | Version | Delivery Method | Purpose / Choice |
 | :--- | :--- | :--- | :--- |
-| **Bootstrap** | `5.3.3` | CDN (jsDelivr) | Layout, grid system, responsive utilities, forms. Provides standard utility classes while allowing custom CSS override. |
-| **marked.js** | `12.0.0` | CDN (cdnjs) | Compiles Markdown files to clean, secure HTML client-side. Light, fast, and robust. |
-| **Quill.js** | `2.0.0` | CDN (cdnjs) | Modern, clean rich text editor for writing posts. Offers a smooth WYSIWYG experience and custom toolbar APIs. |
-| **Cropper.js** | `1.6.2` | CDN (cdnjs) | High-performance client-side image cropper. Used to crop screenshots/game covers on the publisher panel before upload. |
-| **Inter Font** | Google Fonts | Web CDN | Used as the main body font. Clean, highly legible, modern sans-serif typography. |
-| **Lora Font** | Google Fonts | Web CDN | Elegant serif font for headings and long-form article body text to emulate premium editorial journals (like Medium/Substack). |
+| **Bootstrap** | `5.3.3` | CDN (jsDelivr) | Grid layout and responsive typography framework. Minimalist design system overrides default styles. |
+| **marked.js** | `12.0.0` | CDN (jsDelivr) | Compiles Markdown files to clean, secure HTML on the client side. Used for rendering individual posts dynamically. |
+| **Quill.js** | `2.0.2` | CDN (jsDelivr) | Rich WYSIWYG editor for writing posts. Offers visual text formatting (bold, italic, header structure) while remaining lightweight. |
+| **Cropper.js** | `1.6.2` | CDN (jsDelivr) | High-performance image cropper. Intercepts image uploads, allowing the blogger to crop game screenshots before saving. |
+| **Turndown.js** | `7.1.3` | CDN (jsDelivr) | Translates rich HTML output from the Quill editor back into clean, readable Markdown (`.md`) files. |
+| **Inter Font** | Google Fonts | Web CDN | Used as the main body font. Clean, highly legible sans-serif. |
+| **Lora Font** | Google Fonts | Web CDN | Elegant serif font for blog post bodies to mimic physical books or premium game design journals. |
 
 ---
 
-## 2. Minimalist Aesthetic Decisions
-The user requested a **very simple visual layout** with **no gradients, noise, or "AI-style" designs**.
-- **Color Palette**: High-contrast, near-monochrome palette. White/light-grey backgrounds, dark grey text (`#212529`), and sharp thin borders (`1px solid #e0e0e0`).
-- **Cards**: Flat cards. No drop shadows, gradients, or rounded corners of modern "glassmorphic" designs. Instead, sharp, thin lines and neat typography.
-- **Accents**: Light grey backgrounds for secondary text/labels. Bright accent colors (e.g., pure red/blue or primary colors) are avoided in favor of solid dark grey/black for active states.
+## 2. Minimalist Visual Decisions
+The user requested a **clean typographic style** with **no gradients, noise, or modern glow trends**.
+- **Monochrome & High Contrast**: Built on standard black-and-white accents. Off-white (`#fcfcfc`) for reading comfort, black (`#111111`) for text, and dark grey borders (`#e0e0e0`).
+- **Sharp Edges**: Cards have `border-radius: 0px` (sharp corners). Heavy drop shadows are omitted in favor of solid thin border color changes (`1px solid #111111`) on hover.
+- **Color Variables**: All colors use CSS variables (`--bg-color`, `--text-color`, `--border-color`) to support an instant dark/light mode toggle with zero layout adjustments.
 
 ---
 
-## 3. Storage & Publishing Architecture
-- **GitHub API Integrations**: Client-side JavaScript interacts with the GitHub REST API (`https://api.github.com`) using a user-provided Personal Access Token.
-- **Save Strategy**:
-  - Image files are converted to `image/webp` client-side with a `0.8` quality setting using standard browser `canvas.toBlob()`. WebP reduces image file sizes by 70-80% compared to JPG/PNG, preventing Git repo bloat.
-  - Video clips are embedded using YouTube/Vimeo links to avoid free tier size limits, but can also be uploaded if they are small (using direct base64 file upload via GitHub API).
-  - Posts are committed as individual `.md` files.
-  - The index file `posts.json` is updated by fetching the existing file, parsing, appending metadata (title, date, summary, tags, file path), and uploading it back to Git.
+## 3. Storage & Publishing Architecture (GitHub API Integration)
+
+By using the **GitHub REST API**, we avoid paying for databases, avoid database throttling, and maintain 100% control over files.
+
+```mermaid
+graph TD
+    A[blogger.html Dashboard] -- 1. Selects Image --> B[Cropper.js Dialog]
+    B -- 2. Compress WebP Blob --> C[GitHub API PUT /media/]
+    C -- 3. Insert WebP URL --> A
+    A -- 4. Convert HTML to Markdown --> D[Turndown.js]
+    A -- 5. Commit Markdown file --> E[GitHub API PUT posts/post-id.md]
+    A -- 6. Fetch existing posts.json & SHA --> F[GitHub API GET posts.json]
+    F -- 7. Prepend new post metadata --> G[Local State]
+    G -- 8. Commit updated posts.json --> H[GitHub API PUT posts.json with SHA]
+```
+
+### Decoupling and Safety (The `posts.json` Database)
+- The landing page does not scan the folder directory (which is impossible client-side in a static site). Instead, it queries a single lightweight registry file: `posts.json`.
+- This registry is a simple JSON array. If you ever want to manually add or delete a post, you can just drop a `.md` file in the `/posts/` directory and add/remove its entry in `posts.json`. The site will read this index and adjust immediately. It is impossible to "break" the site code this way.
+
+### Client-Side Image Crop & WebP Compression
+- Game screenshots can be multi-megabyte files, which would quickly bloat a Git repository.
+- We utilize `Cropper.js` to crop the image to a selected aspect ratio.
+- We convert the crop canvas to a `WebP` blob using:
+  ```javascript
+  canvas.toBlob(callback, 'image/webp', 0.8)
+  ```
+- This reduces the image file size to a highly optimized `100KB - 200KB` file.
+- The compressed base64 string is uploaded directly to your GitHub repository in the `posts/media/` folder.
+
+### HTML-to-Markdown (Quill + Turndown)
+- To give the writer a beautiful WYSIWYG experience, we use `Quill.js` which outputs HTML.
+- However, we want to save posts as standard Markdown `.md` files so that they remain human-friendly and easily editable in Git.
+- When the publisher clicks "Publish", `Turndown.js` automatically parses Quill's HTML output, translating tags (e.g. `<h2>`, `<strong>`, `<ul>`) into standard Markdown (e.g. `##`, `**`, `*`).
+- The resulting Markdown document is pushed to GitHub. When a reader opens the page, `marked.js` translates it back to HTML.
