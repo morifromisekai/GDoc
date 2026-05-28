@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reading Post - Game Design Log</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Responsive Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-minimal">
+        <div class="container">
+            <a class="navbar-brand-minimal" href="index.html" id="nav-brand-logo">GDOC // GAME DESIGN LOG</a>
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+                <ul class="navbar-nav align-items-center gap-3 mt-3 mt-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link-minimal" href="index.html" id="nav-link-home">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link-minimal" href="blogger.html" id="nav-link-blogger">Publish</a>
+                    </li>
+                    <li class="nav-item">
+                        <button class="btn-toggle-theme" id="theme-toggle-btn" aria-label="Toggle theme">DARK MODE</button>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Post Article Reader -->
+    <main class="container">
+        <article class="post-container" id="post-article-element">
+            <header>
+                <div class="mb-3">
+                    <a href="index.html" class="text-decoration-none text-muted fs-7 fw-semibold text-uppercase tracking-wider">&larr; Back to all posts</a>
+                </div>
+                <h1 class="post-title" id="post-title">Loading post...</h1>
+                <div class="post-meta" id="post-meta">
+                    <span id="post-date">-- ---, ----</span> &bull; 
+                    <span id="post-readtime">-- min read</span> &bull;
+                    <span id="post-tags" class="ms-1"></span>
+                </div>
+            </header>
+
+            <section class="post-content font-serif" id="post-content">
+                <div class="text-center py-5">
+                    <div class="minimal-spinner" role="status"></div>
+                </div>
+            </section>
+
+            <footer class="mt-5 pt-4 border-top border-color">
+                <div class="d-flex justify-content-between align-items-center">
+                    <a href="index.html" class="btn btn-minimal-secondary btn-sm">&larr; Back to Home</a>
+                    <button class="btn btn-minimal btn-sm" id="share-btn">Share Post</button>
+                </div>
+            </footer>
+        </article>
+    </main>
+
+    <!-- Footer -->
+    <footer class="container py-4 border-top border-color mt-5">
+        <div class="d-flex flex-column flex-sm-row justify-content-between align-sm-center text-muted fs-7">
+            <div>
+                &copy; 2026 Game Design Log. Built for clean reading.
+            </div>
+            <div class="mt-2 mt-sm-0">
+                <a href="blogger.html" class="text-decoration-none text-muted">Admin Dashboard</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap 5 Bundle JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Markdown Parser (marked.js) -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <!-- Scripts -->
+    <script src="config.js"></script>
+    <script>
+        // Set Theme Immediately to prevent flash
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        const toggleBtn = document.getElementById('theme-toggle-btn');
+        if (toggleBtn) {
+            toggleBtn.textContent = savedTheme === 'dark' ? 'LIGHT MODE' : 'DARK MODE';
+        }
+        
+        if (toggleBtn) {
+            toggleBtn.addEventListener('click', () => {
+                const currentTheme = document.documentElement.getAttribute('data-theme');
+                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                document.documentElement.setAttribute('data-theme', newTheme);
+                localStorage.setItem('theme', newTheme);
+                toggleBtn.textContent = newTheme === 'dark' ? 'LIGHT MODE' : 'DARK MODE';
+            });
+        }
+    </script>
+    <script src="post.js"></script>
+</body>
+</html>
