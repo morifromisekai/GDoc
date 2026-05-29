@@ -1,1 +1,12 @@
-[]
+[
+  {
+    "id": "first-blog-5872",
+    "title": "First Blog!!",
+    "summary": "Abc",
+    "date": "2026-05-29",
+    "tags": [
+      "Abc"
+    ],
+    "file": "posts/first-blog-5872.md"
+  }
+]
