@@ -61,3 +61,11 @@ graph TD
 - However, we want to save posts as standard Markdown `.md` files so that they remain human-friendly and easily editable in Git.
 - When the publisher clicks "Publish", `Turndown.js` automatically parses Quill's HTML output, translating tags (e.g. `<h2>`, `<strong>`, `<ul>`) into standard Markdown (e.g. `##`, `**`, `*`).
 - The resulting Markdown document is pushed to GitHub. When a reader opens the page, `marked.js` translates it back to HTML.
+
+---
+
+## 4. Template Title Fix & Markdown H1 Header Stripping
+- **The Issue**: In the initial post reader page view (`post.html`), the header showed "Loading post..." indefinitely instead of updating to the active post's title. Furthermore, if a markdown post file itself started with an `# H1` title (as standard markdown files often do), it resulted in a duplicate rendering: once in the page template meta header, and once in the compiled HTML content.
+- **The Fix**: 
+  1. Updated `post.js`'s `renderMetadata` function to set `postTitle.textContent = metadata.title`, replacing the loading placeholder.
+  2. Implemented string matching inside `fetchAndRenderMarkdown` to parse the fetched raw markdown text. If it detects a leading `# H1` header line matching the post's title, it shifts that line off the content array before compiling it into HTML. This maintains clean, dry typography for all posts.
