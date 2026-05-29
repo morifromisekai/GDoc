@@ -69,3 +69,9 @@ graph TD
 - **The Fix**: 
   1. Updated `post.js`'s `renderMetadata` function to set `postTitle.textContent = metadata.title`, replacing the loading placeholder.
   2. Implemented string matching inside `fetchAndRenderMarkdown` to parse the fetched raw markdown text. If it detects a leading `# H1` header line matching the post's title, it shifts that line off the content array before compiling it into HTML. This maintains clean, dry typography for all posts.
+
+---
+
+## 5. GitHub API CORS & Cache-Control Configuration
+- **The Issue**: When navigating to the "Manage Posts" tab, the browser console threw a `Cross-Origin Request Blocked: Same Origin Policy` preflight error, reporting that the `'cache-control'` request header is not allowed by GitHub's `Access-Control-Allow-Headers` CORS headers. This caused the fetch operation to fail with a browser `NetworkError`.
+- **The Fix**: Removed the `'Cache-Control': 'no-cache'` header from the fetch settings. Instead, we appended a dynamic timestamp parameter (`&t=Date.now()`) to the request query parameters. This achieves the same cache-bypassing goal without triggering preflight CORS errors on the GitHub API.

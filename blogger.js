@@ -355,10 +355,10 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
 
         try {
-            const response = await fetch(`https://api.github.com/repos/${gitConfig.owner}/${gitConfig.repo}/contents/posts.json?ref=${gitConfig.branch}`, {
+            // We append a timestamp parameter to bypass cache because GitHub API CORS blocks the Cache-Control header
+            const response = await fetch(`https://api.github.com/repos/${gitConfig.owner}/${gitConfig.repo}/contents/posts.json?ref=${gitConfig.branch}&t=${Date.now()}`, {
                 headers: {
-                    'Authorization': `token ${gitConfig.token}`,
-                    'Cache-Control': 'no-cache'
+                    'Authorization': `token ${gitConfig.token}`
                 }
             });
 
