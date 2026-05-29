@@ -398,3 +398,24 @@ h1, h2, h3, h4, h5, h6 {
     color: var(--text-color) !important;
     border-bottom-color: var(--text-color) !important;
 }
+
+/* Social Footer */
+.social-footer {
+    border-top: 1px solid var(--border-color);
+    padding: 2rem 0;
+    margin-top: 3rem;
+    transition: border-color 0.25s ease;
+}
+
+.social-icon {
+    color: var(--text-muted);
+    transition: color 0.2s ease, transform 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.social-icon:hover {
+    color: var(--text-color);
+    transform: translateY(-2px);
+}
