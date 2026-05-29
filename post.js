@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             renderMetadata(postMetadata);
-            await fetchAndRenderMarkdown(postMetadata.file);
+            await fetchAndRenderMarkdown(postMetadata.file, postMetadata.title);
         } catch (error) {
             console.error('Error fetching post index:', error);
             showError('Failed to load blog index. Please verify that posts.json is created.');
@@ -43,8 +43,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 3. Render Post Metadata in Header
     function renderMetadata(metadata) {
-        // Set Document Title
+        // Set Document Title and page heading
         document.title = `${metadata.title} - Game Design Log`;
+        postTitle.textContent = metadata.title;
 
         // Format Date
         let formattedDate = metadata.date;
@@ -75,7 +76,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // 4. Fetch Raw Markdown and Render to HTML
-    async function fetchAndRenderMarkdown(filePath) {
+    async function fetchAndRenderMarkdown(filePath, postTitleText) {
         try {
             const response = await fetch(filePath);
             if (!response.ok) {
@@ -83,8 +84,19 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             const markdownText = await response.value || await response.text();
 
+            // Strip duplicate leading H1 title if it matches the post title
+            let cleanedMarkdown = markdownText.trim();
+            if (cleanedMarkdown.startsWith('# ')) {
+                const lines = cleanedMarkdown.split('\n');
+                const firstLineText = lines[0].replace(/^#\s+/, '').trim();
+                if (firstLineText.toLowerCase() === postTitleText.toLowerCase()) {
+                    lines.shift(); // Remove the duplicate H1 header line
+                    cleanedMarkdown = lines.join('\n').trim();
+                }
+            }
+
             // Calculate Reading Time (rough estimation: 200 words per minute)
-            const words = markdownText.trim().split(/\s+/).length;
+            const words = cleanedMarkdown.trim().split(/\s+/).length;
             const readingTime = Math.max(1, Math.ceil(words / 200));
             postReadtime.textContent = `${readingTime} min read`;
 
@@ -95,7 +107,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             // Convert to HTML
-            const parsedHTML = marked.parse(markdownText);
+            const parsedHTML = marked.parse(cleanedMarkdown);
             
             // Inject and clean
             postContent.innerHTML = parsedHTML;
