@@ -89,3 +89,9 @@ graph TD
   1. **Branding Updates**: Changed the navbar brand header text from `"GDOC // GAME DESIGN LOG"` to `"GDOC // All things Game Design"` in `index.html` and `"G-DOC // All things Game Design"` in `blogger.html`.
   2. **Hero Subtitle Update**: Changed the homepage hero description to `"About the games I've played & a bit more."` to keep it concise and personalized.
   3. **Footer Removal**: Removed the bottom page footer element from `index.html` to simplify the scrolling bottom.
+
+---
+
+## 8. Global Muted Text Contrast Override
+- **The Issue**: In dark mode (`data-theme="dark"`), blocks of text styled with Bootstrap's `.text-muted` helper class (such as the main homepage tagline and the "no posts found" notice) remained styled in dark grey, rendering them invisible on the near-black background. This occurred because Bootstrap's default `.text-muted` styles were not overridden by our custom dark mode styles.
+- **The Fix**: Added a global `.text-muted` class rule in `style.css` using `var(--text-muted) !important`. This maps all muted text to our custom monochrome color variables (`#666666` in light mode, `#999999` in dark mode), ensuring excellent readability.
