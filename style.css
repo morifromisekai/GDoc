@@ -376,3 +376,21 @@ h1, h2, h3, h4, h5, h6 {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
+
+/* Dynamic Tab Navigation Styles for Dashboard */
+#dashboardTabs .nav-link {
+    background: none !important;
+    border: none !important;
+    border-bottom: 2px solid transparent !important;
+    color: var(--text-muted) !important;
+    transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+#dashboardTabs .nav-link:hover {
+    color: var(--text-color) !important;
+}
+
+#dashboardTabs .nav-link.active {
+    color: var(--text-color) !important;
+    border-bottom-color: var(--text-color) !important;
+}

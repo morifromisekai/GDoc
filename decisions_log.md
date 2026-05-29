@@ -75,3 +75,9 @@ graph TD
 ## 5. GitHub API CORS & Cache-Control Configuration
 - **The Issue**: When navigating to the "Manage Posts" tab, the browser console threw a `Cross-Origin Request Blocked: Same Origin Policy` preflight error, reporting that the `'cache-control'` request header is not allowed by GitHub's `Access-Control-Allow-Headers` CORS headers. This caused the fetch operation to fail with a browser `NetworkError`.
 - **The Fix**: Removed the `'Cache-Control': 'no-cache'` header from the fetch settings. Instead, we appended a dynamic timestamp parameter (`&t=Date.now()`) to the request query parameters. This achieves the same cache-bypassing goal without triggering preflight CORS errors on the GitHub API.
+
+---
+
+## 6. Dynamic Tab Active Underline & Text Toggling
+- **The Issue**: In the publisher dashboard, switching between "Write Post" and "Manage Posts" tabs did not toggle the active underline styling and font-color darkness. The active line remained stuck under "Write Post", and the "Manage Posts" label remained stuck as greyed-out text, even when its tab panel content was displayed. This occurred because active styling (e.g., `text-dark`, `border-bottom: 2px solid...`) was defined as static inline styles and helper classes in the HTML, preventing Bootstrap's dynamic `.active` class toggles from applying properly.
+- **The Fix**: Removed all inline styles and static text-weight classes from the tab buttons in `blogger.html`. Added CSS rules in `style.css` targeting `#dashboardTabs .nav-link` that transition colors and borders based on the presence of the `.active` class. This allows the styling and highlights to toggle dynamically.
