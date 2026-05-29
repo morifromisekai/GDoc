@@ -81,3 +81,11 @@ graph TD
 ## 6. Dynamic Tab Active Underline & Text Toggling
 - **The Issue**: In the publisher dashboard, switching between "Write Post" and "Manage Posts" tabs did not toggle the active underline styling and font-color darkness. The active line remained stuck under "Write Post", and the "Manage Posts" label remained stuck as greyed-out text, even when its tab panel content was displayed. This occurred because active styling (e.g., `text-dark`, `border-bottom: 2px solid...`) was defined as static inline styles and helper classes in the HTML, preventing Bootstrap's dynamic `.active` class toggles from applying properly.
 - **The Fix**: Removed all inline styles and static text-weight classes from the tab buttons in `blogger.html`. Added CSS rules in `style.css` targeting `#dashboardTabs .nav-link` that transition colors and borders based on the presence of the `.active` class. This allows the styling and highlights to toggle dynamically.
+
+---
+
+## 7. User Custom Branding & Footer Removal (Direct GitHub Edits)
+- **The Changes**: The user customized layout properties directly in the GitHub web editor:
+  1. **Branding Updates**: Changed the navbar brand header text from `"GDOC // GAME DESIGN LOG"` to `"GDOC // All things Game Design"` in `index.html` and `"G-DOC // All things Game Design"` in `blogger.html`.
+  2. **Hero Subtitle Update**: Changed the homepage hero description to `"About the games I've played & a bit more."` to keep it concise and personalized.
+  3. **Footer Removal**: Removed the bottom page footer element from `index.html` to simplify the scrolling bottom.
