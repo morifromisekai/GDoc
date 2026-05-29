@@ -1,15 +1,5 @@
 [
   {
-    "id": "gret-stuff-this-varcel-and-everything-0853",
-    "title": "Gret stuff, this varcel and everything",
-    "summary": "Trying to add a post to the blog",
-    "date": "2026-05-28",
-    "tags": [
-      "Test"
-    ],
-    "file": "posts/gret-stuff-this-varcel-and-everything-0853.md"
-  },
-  {
     "id": "core-loops-gamedesign",
     "title": "Core Loops: The Foundation of Game Design",
     "summary": "An exploration of core feedback loops, action-reward cycles, and how they keep players engaged in popular game design structures.",
